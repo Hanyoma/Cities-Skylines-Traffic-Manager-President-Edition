@@ -10,13 +10,17 @@ using TrafficManager.Traffic;
 using TrafficManager.TrafficLight;
 using UnityEngine;
 
+using NetworkInterface;
+
 namespace TrafficManager.UI.SubTools {
 	public class ManualTrafficLightsTool : SubTool {
 		private readonly int[] _hoveredButton = new int[2];
 		private readonly GUIStyle _counterStyle = new GUIStyle();
 
+        private NetworkInterface.Server _server = new Server();
+
 		public ManualTrafficLightsTool(TrafficManagerTool mainTool) : base(mainTool) {
-			
+            _server.Start();
 		}
 
         public static NetNode GetNetNode(int nodeId)
@@ -679,8 +683,10 @@ namespace TrafficManager.UI.SubTools {
 		}
 
 		public override void Cleanup() {
+            return;
 			if (SelectedNodeId == 0) return;
-			var nodeSimulation = TrafficLightSimulation.GetNodeSimulation(SelectedNodeId);
+            if (NetworkInterface.Network.selectedNodeIds.Contains(SelectedNodeId)) return;
+            var nodeSimulation = TrafficLightSimulation.GetNodeSimulation(SelectedNodeId);
 
 			if (nodeSimulation == null || !nodeSimulation.IsManualLight()) return;
 
