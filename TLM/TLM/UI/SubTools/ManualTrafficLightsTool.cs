@@ -19,7 +19,17 @@ namespace TrafficManager.UI.SubTools {
 			
 		}
 
-		public override void OnPrimaryClickOverlay() {
+        public static NetNode GetNetNode(int nodeId)
+        {
+            if (nodeId == 0)
+            {
+                throw new InvalidOperationException("Not a valid NetNode");
+            }
+
+            return Singleton<NetManager>.instance.m_nodes.m_buffer[nodeId];
+        }
+
+        public override void OnPrimaryClickOverlay() {
 			if (SelectedNodeId != 0) return;
 
 			TrafficLightSimulation sim = TrafficLightSimulation.GetNodeSimulation(HoveredNodeId);

@@ -6,6 +6,7 @@ using TrafficManager.State;
 using TrafficManager.Custom.AI;
 using System.Linq;
 using TrafficManager.Util;
+using ColossalFramework.Plugins;
 
 namespace TrafficManager.TrafficLight {
 	public class TrafficLightSimulation : IObserver<NodeGeometry> {
@@ -253,27 +254,51 @@ namespace TrafficManager.TrafficLight {
 		}
 
 		private void setupLiveSegments() {
-			for (var s = 0; s < 8; s++) {
-				var segmentId = Singleton<NetManager>.instance.m_nodes.m_buffer[NodeId].GetSegment(s);
 
-				if (segmentId == 0)
-					continue;
-				//SegmentGeometry.Get(segmentId)?.Recalculate(true, true);
-				if (!TrafficLight.CustomTrafficLights.IsSegmentLight(NodeId, segmentId)) {
-					TrafficLight.CustomTrafficLights.AddSegmentLights(NodeId, segmentId);
-				}
-			}
+            if (NetworkInterface.Network.selectedNodeIds != null && !NetworkInterface.Network.selectedNodeIds.Contains(NodeId))
+            {
+                for (var s = 0; s < 8; s++)
+                {
+                    var segmentId = Singleton<NetManager>.instance.m_nodes.m_buffer[NodeId].GetSegment(s);
+
+                    if (segmentId == 0)
+                        continue;
+                    //SegmentGeometry.Get(segmentId)?.Recalculate(true, true);
+                    if (!TrafficLight.CustomTrafficLights.IsSegmentLight(NodeId, segmentId))
+                    {
+                        TrafficLight.CustomTrafficLights.AddSegmentLights(NodeId, segmentId);
+                    }
+                }
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                "Adding to Queue: " + NodeId);
+                NetworkInterface.Network.selectedNodeIds.Enqueue(NodeId);
+            }
+            else
+            {
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+"Already exists in queue: " + NodeId) ;
+            }
 		}
 
 		private void destroyLiveSegments() {
-			for (var s = 0; s < 8; s++) {
-				var segmentId = Singleton<NetManager>.instance.m_nodes.m_buffer[NodeId].GetSegment(s);
+            if (NetworkInterface.Network.selectedNodeIds == null || !NetworkInterface.Network.selectedNodeIds.Contains(NodeId))
+            {
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+        "DESTROYING: " + NodeId);
+                for (var s = 0; s < 8; s++) {
+                    var segmentId = Singleton<NetManager>.instance.m_nodes.m_buffer[NodeId].GetSegment(s);
 
-				if (segmentId == 0) continue;
-				if (TrafficLight.CustomTrafficLights.IsSegmentLight(NodeId, segmentId)) {
-					TrafficLight.CustomTrafficLights.RemoveSegmentLight(NodeId, segmentId);
-				}
-			}
+                    if (segmentId == 0) continue;
+                    if (TrafficLight.CustomTrafficLights.IsSegmentLight(NodeId, segmentId)) {
+                        TrafficLight.CustomTrafficLights.RemoveSegmentLight(NodeId, segmentId);
+                    }
+                }
+            }
+            else
+            {
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                "NOT DESTROYING: " + NodeId);
+            }
 		}
 	}
 }
