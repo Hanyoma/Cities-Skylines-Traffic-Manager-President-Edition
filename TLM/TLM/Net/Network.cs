@@ -15,13 +15,16 @@ using UnityEngine;
 using ColossalFramework.UI;
 using ColossalFramework.Plugins;
 
+using TrafficManager.Traffic;
+using TrafficManager.TrafficLight;
+
 namespace NetworkInterface
 {
     public class Network
     {
-        public static Queue<int> selectedNodeIds = new Queue<int>(4);
+        public static Queue<ushort> selectedNodeIds = new Queue<ushort>(4);
 
-        public static void UpdateSelectedIds(int nodeId)
+        public static void UpdateSelectedIds(ushort nodeId)
         {
             if (!selectedNodeIds.Contains(nodeId))
             {
@@ -35,7 +38,7 @@ namespace NetworkInterface
                 JsonConvert.SerializeObject(selectedNodeIds));
         }
 
-        public static NetNode SelectNode(int index)
+        public static ushort SelectNodeId(int index)
         {
             if (index > 3 || index < 0)
             {
@@ -45,7 +48,12 @@ namespace NetworkInterface
             {
                 throw new Exception("Node index out of bounds; set of lights not fully selected!");
             }
-            int nodeId = selectedNodeIds.ElementAt(index);
+            return selectedNodeIds.ElementAt(index);
+        }
+
+        public static NetNode SelectNode(int index)
+        {
+            ushort nodeId = SelectNodeId(index);
             return TrafficManager.UI.SubTools.ManualTrafficLightsTool.GetNetNode(nodeId);
         }
 
@@ -78,22 +86,22 @@ namespace NetworkInterface
             }
             else if (request.Method == MethodType.GETDENSITY)
             {
-                object nodeIdObj = GetObject(request.Object);
-                int nodeId = Convert.ToInt32(nodeIdObj);
+                object nodeIndexObj = GetObject(request.Object);
+                int nodeIndex = Convert.ToInt32(nodeIndexObj);
                 List<object> parameterObjs = GetParameters(request.Object);
                 int segId = Convert.ToInt32(parameterObjs[0]);
-                retObj = GetSegmentDensity(nodeId, segId);
+                retObj = GetSegmentDensity(nodeIndex, segId);
             }
             else if (request.Method == MethodType.GETSTATE)
             {
-                object nodeIdObj = GetObject(request.Object);
-                int nodeId = Convert.ToInt32(nodeIdObj);
-                retObj = GetNodeState(nodeId);
+                object nodeIndexObj = GetObject(request.Object);
+                int nodeIndex = Convert.ToInt32(nodeIndexObj);
+                retObj = GetNodeState(nodeIndex);
             }
             else if (request.Method == MethodType.SETSTATE)
             {
-                object nodeIdObj = GetObject(request.Object);
-                int nodeId = Convert.ToInt32(nodeIdObj);
+                object nodeIndexObj = GetObject(request.Object);
+                int nodeIndex = Convert.ToInt32(nodeIndexObj);
                 List<object> parameterObjs = GetParameters(request.Object);
                 // get segment id
                 int segId = Convert.ToInt32(parameterObjs[0]);
@@ -109,7 +117,7 @@ namespace NetworkInterface
                     (RoadBaseAI.TrafficLightState) Enum.Parse(
                         typeof(RoadBaseAI.TrafficLightState),
                         segState);
-                retObj = SetNodeState(nodeId, segId, vehicleState, pedestrianState);
+                retObj = SetNodeState(nodeIndex, segId, vehicleState, pedestrianState);
             }
             else
             {
@@ -119,67 +127,70 @@ namespace NetworkInterface
             return retObj;
         }
 
-        public object GetSegmentDensity(int nodeId, int segId)
+        public object GetSegmentDensity(int nodeIndex, int segIndex)
         {
             byte density = 0;
-            NetNode node = SelectNode(nodeId);
-            ushort mSegId = NetManager.instance.m_nodes.m_buffer[nodeId].GetSegment(segId);
-            density = NetManager.instance.m_segments.m_buffer[mSegId].m_trafficDensity;
+            ushort nodeId = SelectNodeId(nodeIndex);
+            ushort segId = NetManager.instance.m_nodes.m_buffer[nodeId].GetSegment(segIndex);
+            density = NetManager.instance.m_segments.m_buffer[segId].m_trafficDensity;
             return density;
         }
 
-        public object SetNodeState(int nodeId, int segId, RoadBaseAI.TrafficLightState vehicleState, RoadBaseAI.TrafficLightState pedestrianState)
+        public object SetNodeState(int nodeIndex, int segIndex, RoadBaseAI.TrafficLightState vehicleState, RoadBaseAI.TrafficLightState pedestrianState)
         {
-            NetNode node = SelectNode(nodeId);
-            ushort mSegId = NetManager.instance.m_nodes.m_buffer[nodeId].GetSegment(segId);
-            bool pedestrians = true, vehicles = true;
-            RoadBaseAI.SetTrafficLightState((ushort)nodeId,
-                ref NetManager.instance.m_segments.m_buffer[mSegId],
-                SimulationManager.instance.m_currentFrameIndex,
-                vehicleState,
-                pedestrianState,
-                vehicles,
-                pedestrians
-                );
+            ushort nodeId = SelectNodeId(nodeIndex);
+            ushort segId = NetManager.instance.m_nodes.m_buffer[nodeId].GetSegment(segIndex);
+
+            CustomSegmentLights csls = CustomTrafficLights.GetSegmentLights(nodeId, segId);
+            if (csls != null)
+            {
+                foreach(ExtVehicleType evt in csls.VehicleTypes)
+                {
+                    CustomSegmentLight csl = csls.GetCustomLight(evt);
+                    if (csl != null)
+                    {
+                        RoadBaseAI.TrafficLightState currentState = csl.GetVisualLightState();
+                        if (currentState != vehicleState)
+                        {
+                            if (vehicleState != csl.GetLightMain())
+                                csl.ChangeLightMain();
+                            if (vehicleState != csl.GetLightLeft())
+                                csl.ChangeLightLeft();
+                            if (vehicleState != csl.GetLightRight())
+                                csl.ChangeLightRight();
+                        }
+                    }
+                }
+            }
+            else
+                return false;
+
             return true;
         }
 
-        public object GetNodeState(int nodeId)
+        public object GetNodeState(int nodeIndex)
         {
-            NetNode node = SelectNode(nodeId);
-            NetSegment[] segments = 
-                {
-NetManager.instance.m_segments.m_buffer[node.m_segment0],
-NetManager.instance.m_segments.m_buffer[node.m_segment1],
-NetManager.instance.m_segments.m_buffer[node.m_segment2],
-NetManager.instance.m_segments.m_buffer[node.m_segment3],
-NetManager.instance.m_segments.m_buffer[node.m_segment4],
-NetManager.instance.m_segments.m_buffer[node.m_segment5],
-NetManager.instance.m_segments.m_buffer[node.m_segment6],
-NetManager.instance.m_segments.m_buffer[node.m_segment7]
-};
-
             Dictionary<string, object> retObj = new Dictionary<string, object>();
-
-            int i = 0;
-            foreach (NetSegment seg in segments)
+            ushort nodeId = SelectNodeId(nodeIndex);
+            for (int i=0; i<8; i++)
             {
-                NetSegment theSeg = seg;
-                if (theSeg.m_flags > 0)
+                Dictionary<string, string> segDict = new Dictionary<string, string>();
+
+                ushort segId = NetManager.instance.m_nodes.m_buffer[nodeId].GetSegment(i);
+                CustomSegmentLights csls = CustomTrafficLights.GetSegmentLights(nodeId, segId);
+
+                if (csls != null)
                 {
-                    Dictionary<string, string> segDict = new Dictionary<string, string>();
-                    RoadBaseAI.TrafficLightState vehicleState;
-                    RoadBaseAI.TrafficLightState pedState;
-                    RoadBaseAI.GetTrafficLightState((ushort)nodeId, ref theSeg,
-                        SimulationManager.instance.m_currentFrameIndex,
-                        out vehicleState,
-                        out pedState);
-                    segDict.Add("vehicle", vehicleState.ToString());
-                    segDict.Add("pedestrian", vehicleState.ToString());
+                    foreach (ExtVehicleType evt in csls.VehicleTypes)
+                    {
+                        CustomSegmentLight csl = csls.GetCustomLight(evt);
+                        if (csl != null)
+                            segDict.Add("vehicle", csl.GetVisualLightState().ToString());
+                    }
                     retObj.Add("segment" + i, segDict);
                 }
-                i++;
             }
+
             return retObj;
         }
 
