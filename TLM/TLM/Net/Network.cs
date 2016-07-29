@@ -123,36 +123,7 @@ namespace NetworkInterface
         {
             byte density = 0;
             NetNode node = SelectNode(nodeId);
-            ushort mSegId = 0;
-            switch (segId)
-            {
-                case 0:
-                    mSegId = node.m_segment0;
-                    break;
-                case 1:
-                    mSegId = node.m_segment1;
-                    break;
-                case 2:
-                    mSegId = node.m_segment2;
-                    break;
-                case 3:
-                    mSegId = node.m_segment3;
-                    break;
-                case 4:
-                    mSegId = node.m_segment4;
-                    break;
-                case 5:
-                    mSegId = node.m_segment5;
-                    break;
-                case 6:
-                    mSegId = node.m_segment6;
-                    break;
-                case 7:
-                    mSegId = node.m_segment7;
-                    break;
-                default:
-                    break;
-            }
+            ushort mSegId = NetManager.instance.m_nodes.m_buffer[nodeId].GetSegment(segId);
             density = NetManager.instance.m_segments.m_buffer[mSegId].m_trafficDensity;
             return density;
         }
@@ -160,36 +131,7 @@ namespace NetworkInterface
         public object SetNodeState(int nodeId, int segId, RoadBaseAI.TrafficLightState vehicleState, RoadBaseAI.TrafficLightState pedestrianState)
         {
             NetNode node = SelectNode(nodeId);
-            ushort mSegId = 0;
-            switch (segId)
-            {
-                case 0:
-                    mSegId = node.m_segment0;
-                    break;
-                case 1:
-                    mSegId = node.m_segment1;
-                    break;
-                case 2:
-                    mSegId = node.m_segment2;
-                    break;
-                case 3:
-                    mSegId = node.m_segment3;
-                    break;
-                case 4:
-                    mSegId = node.m_segment4;
-                    break;
-                case 5:
-                    mSegId = node.m_segment5;
-                    break;
-                case 6:
-                    mSegId = node.m_segment6;
-                    break;
-                case 7:
-                    mSegId = node.m_segment7;
-                    break;
-                default:
-                    break;
-            }
+            ushort mSegId = NetManager.instance.m_nodes.m_buffer[nodeId].GetSegment(segId);
             bool pedestrians = true, vehicles = true;
             RoadBaseAI.SetTrafficLightState((ushort)nodeId,
                 ref NetManager.instance.m_segments.m_buffer[mSegId],
