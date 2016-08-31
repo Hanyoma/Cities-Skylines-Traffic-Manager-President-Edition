@@ -1,6 +1,66 @@
 # Cities: Skylines - Traffic Manager: *President Edition*
 A work-in-progress modification for **Cities: Skylines** to add additional traffic control
 
+# Overview of purpose of Visor-VU
+
+This mod was extended for Visor-VU with the purpose of adding the
+ability to remotely control and sense traffic intersections in Cities:
+Skylines using a hardware-in-the-loop (HIL) platform. For this
+purpose, we needed to be able to remotely determine the traffic on
+each street at an intersection (sense), and to be able to remotely set
+the traffic light state for a given intersection (actuate).
+
+# Additions for Visor-VU
+
+To accomplish the goals of remote sensing and acutation, we developed
+a UDP-server thread which runs inside the Cities: Skylines game
+whenever the game is running a simulation, and provides an API for
+sending data to the game and getting data from the game. This remote
+interface works because the game's APIs exposed to modders are
+thread-safe.
+
+The network code was ported over from a first attempt at a more
+generic interface which would expose the entire API; this other mod
+was incomplete in the timeline required, but provided enough of a
+starting point to get the remote sensing/actuation working. The code
+for the old mod can be found
+[here](http://github.com/finger563/cities-skylines-network-api).
+
+Parts of that mod have been moved into the `Net` folder,
+[here](./TLM/TLM/Net).
+
+# How to compile the mod
+
+Load the mod in Visual Studio 2015, and resolve the references to the
+Cities: Skylines assemblies, which are found in your Cities: Skylines
+install folder. Once those assemblies have been resolved, the mod will
+build and produce a `dll` which it will try to automatically put into
+`%LOCALAPPDATA%/Colossal Order/Cities_Skylines/Addons/Mods/{Mod
+Name}`, from which Cities: Skylines will automatically be able to run
+it at run-time.
+
+# How to set up the mod in Cities:Skylines
+
+Once you have compiled the mod using Visual Studio and it has placed
+the mod into the folder mentioned in the previous section, you will
+need to copy the MONO dlls from the Cities: Skylines install folder
+into that mod folder (since some of the serialization classes will be
+required for execution). After that is complete, the mod will be fully
+automatically loaded by the game.
+
+Once you start the game, you can go to the content manager and enable
+the mod.
+
+# How to use the mod within a savegame / city of Cities: Skylines
+
+Once you have loaded a save game or created a city in Cities:
+Skylines, you can click the `Traffic President` button to activate the
+mod's UI. The mod has been altered so that when you select an
+intersection to be manually controlled, it never releases control of
+that intersection back to the game, and instead keeps track of the 4
+most recent intersections you have selected. These four are able to be
+controlled over the network interface.
+
 # Changelog
 1.7.1, 07/24/2016:
 - Reverted "Busses now may only ignore lane arrows if driving on a bus lane" for now
