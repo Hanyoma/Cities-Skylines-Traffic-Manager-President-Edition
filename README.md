@@ -33,7 +33,11 @@ Parts of that mod have been moved into the `Net` folder,
 
 Load the mod in Visual Studio 2015, and resolve the references to the
 Cities: Skylines assemblies, which are found in your Cities: Skylines
-install folder. Once those assemblies have been resolved, the mod will
+install folder. 
+
+default: `C:\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed`
+
+Once those assemblies have been resolved, the mod will
 build and produce a `dll` which it will try to automatically put into
 `%LOCALAPPDATA%/Colossal Order/Cities_Skylines/Addons/Mods/{Mod
 Name}`, from which Cities: Skylines will automatically be able to run
