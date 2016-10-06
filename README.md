@@ -49,9 +49,12 @@ Once you have compiled the mod using Visual Studio and it has placed
 the mod into the folder mentioned in the previous section, you will
 need to copy the MONO dlls from the Cities: Skylines install folder:
 Default: `C:\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Mono\lib\mono\2.0`
-into `%LOCALAPPDATA%/Colossal Order/Cities_Skylines/Addons/Mods/{Mod
-Name}`(since some of the serialization classes will be
-required for execution). After that is complete, the mod will be fully
+into `%LOCALAPPDATA%/Colossal Order/Cities_Skylines/Addons/Mods/{ModName}`(since some of the serialization classes will be
+required for execution). 
+
+Additionally the `Newtonsoft.Json.dll` from `Cities-Skylines-Traffic-Manager-President-Edition\TLM\TLM\References\JsonNet` needs to be added to `%LOCALAPPDATA%/Colossal Order/Cities_Skylines/Addons/Mods/{ModName}`
+
+After that is complete, the mod will be fully
 automatically loaded by the game.
 
 Once you start the game, you can go to the content manager and enable
