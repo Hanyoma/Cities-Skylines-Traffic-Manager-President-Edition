@@ -33,7 +33,11 @@ Parts of that mod have been moved into the `Net` folder,
 
 Load the mod in Visual Studio 2015, and resolve the references to the
 Cities: Skylines assemblies, which are found in your Cities: Skylines
-install folder. Once those assemblies have been resolved, the mod will
+install folder. 
+
+default: `C:\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed`
+
+Once those assemblies have been resolved, the mod will
 build and produce a `dll` which it will try to automatically put into
 `%LOCALAPPDATA%/Colossal Order/Cities_Skylines/Addons/Mods/{Mod
 Name}`, from which Cities: Skylines will automatically be able to run
@@ -43,9 +47,14 @@ it at run-time.
 
 Once you have compiled the mod using Visual Studio and it has placed
 the mod into the folder mentioned in the previous section, you will
-need to copy the MONO dlls from the Cities: Skylines install folder
-into that mod folder (since some of the serialization classes will be
-required for execution). After that is complete, the mod will be fully
+need to copy the MONO dlls from the Cities: Skylines install folder:
+Default: `C:\Program Files (x86)\Steam\steamapps\common\Cities_Skylines\Mono\lib\mono\2.0`
+into `%LOCALAPPDATA%/Colossal Order/Cities_Skylines/Addons/Mods/{ModName}`(since some of the serialization classes will be
+required for execution). 
+
+Additionally the `Newtonsoft.Json.dll` from `Cities-Skylines-Traffic-Manager-President-Edition\TLM\TLM\References\JsonNet` needs to be added to `%LOCALAPPDATA%/Colossal Order/Cities_Skylines/Addons/Mods/{ModName}`
+
+After that is complete, the mod will be fully
 automatically loaded by the game.
 
 Once you start the game, you can go to the content manager and enable
