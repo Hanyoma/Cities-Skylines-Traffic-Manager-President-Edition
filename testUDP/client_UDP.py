@@ -2,24 +2,29 @@ import socket
 import json
 import logging
 import argparse
+import pprint
 
 logging.basicConfig(level=logging.INFO)
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-def send(data_string):
+def send(data):
     sock.settimeout(1)
-    print 'Send', data_string, 'to simulator'
-    #sock.sendto(data_string, ("192.168.0.112",11000))
+    logging.debug("@SEND msg: %s", pprint.pformat(data))
+    data_string = json.dumps(data)
+
     sock.sendto(data_string, ("localhost", 11000))
 
     try:
-        response, srvr = sock.recvfrom(1024)
-        print "response from", srvr, "is", response
+        response_str, srvr = sock.recvfrom(1024)
+        logging.debug("@SEND response_string: %s", pprint.pformat(response_str))
+
+        response = json.loads(response_str)
+
     except socket.timeout:
         response = ""
         logging.warning('Request timed out')
-        return response
+    return response
 
 def getState():
     data = {
@@ -31,13 +36,34 @@ def getState():
                 'ValueType': 'System.UInt32'
                 }
     }
-    logging.info('data from getState is: %s', data)
+    logging.debug('@GETSTATE data: %s', pprint.pformat(data))
     return data;
 
-def jsonString(data):
-    json_string = json.dumps(data)
-    logging.info('jsonString: %s', json_string)
-    return json_string;
+def getDensity(segment):
+    data = {
+            'Method': 'GETDENSITY',
+            'Object':{
+                        'Name': 'NodeId',
+                        'Type': 'PARAMETER',
+                        'Value': 0,  #// should be 0 - 3 (for the selected ids)
+                        'ValueType': 'System.UInt32',
+                        'Parameters':
+                        [
+                            {
+                            'Name': 'SegmentId',
+                            'Type': 'PARAMETER',
+                            'Value': segment[-1],
+                            'ValueType': 'System.UInt32'
+                            }
+                        ]
+                     }
+            }
+    return data;
 
-
-response = send(jsonString(getState()))
+state = send(getState())
+print "\n"
+logging.info("State: \n%s\n", pprint.pformat(state))
+for index, item in enumerate(state):
+    density = send(getDensity(item))
+    logging.info("GETDENSITY: %s, density: %s", item, density)
+print "\n"
