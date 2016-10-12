@@ -104,20 +104,29 @@ namespace NetworkInterface
                 int nodeIndex = Convert.ToInt32(nodeIndexObj);
                 List<object> parameterObjs = GetParameters(request.Object);
                 // get segment id
-                int segId = Convert.ToInt32(parameterObjs[0]);
-                // get vehicle state
-                string segState = Convert.ToString(parameterObjs[1]);
-                RoadBaseAI.TrafficLightState vehicleState = 
-                    (RoadBaseAI.TrafficLightState) Enum.Parse(
-                        typeof(RoadBaseAI.TrafficLightState),
-                        segState);
-                // get pedestrian state
-                segState = Convert.ToString(parameterObjs[1]);
-                RoadBaseAI.TrafficLightState pedestrianState = 
-                    (RoadBaseAI.TrafficLightState) Enum.Parse(
-                        typeof(RoadBaseAI.TrafficLightState),
-                        segState);
-                retObj = SetNodeState(nodeIndex, segId, vehicleState, pedestrianState);
+                if ((parameterObjs.Count % 3) == 0)
+                {
+                    for (int i = 0; i < parameterObjs.Count; i++)
+                    {
+                        int segId = Convert.ToInt32(parameterObjs[i]);
+                        i++;
+                        // get vehicle state
+                        string segState = Convert.ToString(parameterObjs[i]);
+                        RoadBaseAI.TrafficLightState vehicleState =
+                            (RoadBaseAI.TrafficLightState)Enum.Parse(
+                                typeof(RoadBaseAI.TrafficLightState),
+                                segState);
+                        i++;
+                        // get pedestrian state
+                        segState = Convert.ToString(parameterObjs[i]);
+                        RoadBaseAI.TrafficLightState pedestrianState =
+                            (RoadBaseAI.TrafficLightState)Enum.Parse(
+                                typeof(RoadBaseAI.TrafficLightState),
+                                segState);
+                        retObj = SetNodeState(nodeIndex, segId, vehicleState, pedestrianState);
+                    }
+                }
+         
             }
             else
             {

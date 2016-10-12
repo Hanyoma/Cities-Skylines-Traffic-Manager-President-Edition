@@ -17,7 +17,7 @@ def send(data):
 
     try:
         response_str, srvr = sock.recvfrom(1024)
-        logging.debug("@SEND response_string: %s", pprint.pformat(response_str))
+        logging.info("@SEND response_string: %s", pprint.pformat(response_str))
 
         response = json.loads(response_str)
 
