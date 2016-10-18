@@ -92,6 +92,23 @@ namespace NetworkInterface
                 int segId = Convert.ToInt32(parameterObjs[0]);
                 retObj = GetSegmentDensity(nodeIndex, segId);
             }
+            else if (request.Method == MethodType.GETDENSITIES)
+            {
+                Dictionary<string, object> Obj = new Dictionary<string, object>();
+                object nodeIndexObj = GetObject(request.Object);
+                int nodeIndex = Convert.ToInt32(nodeIndexObj);
+                List<object> parameterObjs = GetParameters(request.Object);
+                ushort nodeId = SelectNodeId(nodeIndex);
+                for (int i = 0; i < parameterObjs.Count(); i++)
+                {
+                    byte density = 0;
+                    ushort segId = NetManager.instance.m_nodes.m_buffer[nodeId].GetSegment(i);
+                    density = NetManager.instance.m_segments.m_buffer[segId].m_trafficDensity;
+                    Obj.Add("segment" + i, density);
+                }
+                retObj = Obj;
+
+            }
             else if (request.Method == MethodType.GETSTATE)
             {
                 object nodeIndexObj = GetObject(request.Object);
@@ -112,6 +129,7 @@ namespace NetworkInterface
                         i++;
                         // get vehicle state
                         string segState = Convert.ToString(parameterObjs[i]);
+                        //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, segState);
                         RoadBaseAI.TrafficLightState vehicleState =
                             (RoadBaseAI.TrafficLightState)Enum.Parse(
                                 typeof(RoadBaseAI.TrafficLightState),
@@ -126,7 +144,7 @@ namespace NetworkInterface
                         retObj = SetNodeState(nodeIndex, segId, vehicleState, pedestrianState);
                     }
                 }
-         
+
             }
             else
             {
