@@ -9,7 +9,7 @@ using Newtonsoft.Json.Converters;
 namespace NetworkInterface
 {
     public enum MethodType {
-        GET, SET, EXECUTE, GETDENSITY, GETSTATE, SETSTATE
+        GET, SET, EXECUTE, GETDENSITY, GETDENSITIES, GETSTATE, SETSTATE
     };
 
     public enum ObjectType {
